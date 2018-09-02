@@ -1,76 +1,14 @@
 import sys
-import math, random
 from collections import defaultdict
 import numpy as np
-import scipy.spatial
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 # from matplotlib.collections import LineCollection
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
-# https://stackoverflow.com/questions/9600801/evenly-distributing-n-points-on-a-sphere/26127012#26127012
-# TODO trivial to vectorize
-def fibonacci_sphere(samples=1, randomize=True):
-    rnd = 1.
-    if randomize:
-        rnd = random.random() * samples
-
-    points = []
-    offset = 2./samples
-    increment = math.pi * (3. - math.sqrt(5.));
-
-    for i in range(samples):
-        y = ((i * offset) - 1) + (offset / 2);
-        r = math.sqrt(1 - pow(y,2))
-
-        phi = ((i + rnd) % samples) * increment
-
-        x = math.cos(phi) * r
-        z = math.sin(phi) * r
-
-        points.append([x,y,z])
-
-    return np.array(points)
-
-
-def random_sphere(samples):
-    a = np.random.normal(size=(samples, 3))
-    a /= np.linalg.norm(a, axis=1, keepdims=True)
-    return a
-
-
-def bunny():
-    ps = []
-    with open("bunny_cloud.txt") as f:
-        for l in f:
-            try:
-                a = map(float, l.split())
-            except:
-                print l
-                raise
-            xyz, confidence, luminosity = a[:3], a[3], a[4]
-            ps.append(xyz)
-    ps = np.array(ps)
-    cog = ps.mean(axis=0, keepdims=True)
-    ps -= cog
-    print ps.shape
-    print np.abs(ps).max()
-    ps /= np.abs(ps).max()
-    return ps
-
-
-def test_tree_query_pairs(ps):
-    s = 0
-    for i, a in enumerate(ps):
-        for j, b in enumerate(ps):
-            if j<=i:
-                continue
-            if np.linalg.norm(a-b) < r:
-                s += 1
-    tree = scipy.spatial.cKDTree(ps)
-    neis = tree.query_pairs(r)
-    assert s == len(neis)
+from pointclouds import *
+from neighborhood import *
 
 
 n = 50000
@@ -80,55 +18,16 @@ ps = fibonacci_sphere(samples=n, randomize=True)
 # ps = bunny() ; n = len(ps) # could be nicer, point cloud is not uniform density on surface
 
 
-def find_hoods(edges):
-    hoods = {}
-    for a in range(n):
-        hoods[a] = []
-    for a, b in edges:
-        hoods[a].append(b)
-        hoods[b].append(a)
-    return hoods
-
-
 tree = scipy.spatial.cKDTree(ps)
-# let's find the smallest radius that leads to a neighborhood graph with average degree > 6.
-# too lazy to calculate it analytically for the Fibonacci sphere,
-# too lazy to set radius on a per-point level for complex surfaces.
-r = np.sqrt(1.0/n)
-while True:
-    edges = tree.query_pairs(r)
-    hoods = find_hoods(edges)
-    sizes = np.array(map(len, hoods.values()))
-    avgdeg = sizes.mean()
-    mindeg = sizes.min()
-    maxdeg = sizes.max()
-    print "radius", r, "average degree", avgdeg, "min", mindeg, "max", maxdeg
-    if avgdeg >= 6:
-        print "final radius", r
-        break
-    r *= 1.2
+r = set_radius(tree)
+edges = tree.query_pairs(r)
+hoods = find_hoods(edges, n)
 
 
 sizes = map(len, hoods.values())
 print sizes[:20]
 hist, bin_edges = np.histogram(sizes, bins=range(max(sizes)+1))
 print hist, bin_edges
-
-
-def sparse_laplacian(n, hoods):
-    data = []
-    row = []
-    col = []
-    for a, hood in hoods.iteritems():
-        m = len(hood)
-        if m > 0:
-            data += [1.0 / m] * m
-            row += [a] * m
-            col += hood
-    s = scipy.sparse.csr_matrix((data, (row, col)), shape=(n, n))
-    # dealing with isolated vertices so that all-1 is still an eigenvector.
-    s.setdiag([-1 if len(hoods[a])>0 else 0 for a in range(n)])
-    return s
 
 
 laplacian = sparse_laplacian(n, hoods)
@@ -183,9 +82,9 @@ for i in range(n_iter):
         # ax.set_cdata(v)
         # fig.canvas.draw()
 
+
 ax.scatter(ps[:, 0], ps[:, 1], ps[:, 2], c=v, cmap=plt.cm.gray_r)
 plt.show()
-
 sys.exit()
 
 
