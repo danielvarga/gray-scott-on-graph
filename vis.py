@@ -3,7 +3,6 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-# from matplotlib.collections import LineCollection
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
 
@@ -21,6 +20,13 @@ def vis_neighborhood_polygon(ps, edges):
     lc = Line3DCollection(segments, cmap=plt.get_cmap('copper'))
     lc.set_linewidth(1)
     ax.add_collection3d(lc)
+    plt.show()
+
+
+def vis_pattern(ps, v):
+    fig = plt.figure(figsize=(10, 10), dpi=72.0, facecolor="white")
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(ps[:, 0], ps[:, 1], ps[:, 2], c=v, cmap=plt.cm.gray_r)
     plt.show()
 
 
