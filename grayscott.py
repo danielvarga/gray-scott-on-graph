@@ -55,11 +55,11 @@ n_iter = 10000
 print "starting", n_iter, "iterations"
 for i in range(1, n_iter+1):
     gray_scott_update(u, v, laplacian)
-    if i % 100 == 0:
+    if i % 50 == 0:
         print i, v.mean()
         sys.stdout.flush()
 
-        rotation = 4 * np.pi * i / n_iter
+        rotation = 2 * np.pi * i / n_iter
         save_frame("frames/frame", i, ps, v, rotation=rotation)
 
 
