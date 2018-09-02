@@ -3,6 +3,4 @@ Reaction-diffusion on non-planar surfaces
 
     python grayscott.py
 
-![Stanford Bunny](/pics/bunny.gif)
-
-![Sphere](/pics/sphere.gif)
+<img src="/pics/bunny.gif" alt="Stanford Bunny" width="250"/> <img src="/pics/sphere.gif" alt="Sphere" width="250"/>
