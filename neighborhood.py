@@ -25,7 +25,7 @@ def find_hoods(edges, n):
     return hoods
 
 
-def set_radius(kdtree):
+def optimize_radius(kdtree):
     # let's find the smallest radius that leads to a neighborhood graph with average degree > 6.
     # too lazy to calculate it analytically for the Fibonacci sphere,
     # too lazy to set radius on a per-point level for complex surfaces.
