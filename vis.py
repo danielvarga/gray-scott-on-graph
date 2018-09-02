@@ -30,6 +30,30 @@ def vis_pattern(ps, v):
     plt.show()
 
 
+def save_frame(prefix, i, ps, values, rotation=0):
+    c, s = np.cos(rotation), np.sin(rotation)
+    j = np.matrix([[c, s], [-s, c]])
+    ps_rotated = ps.copy()
+    ps_rotated[:, [0, 2]] = np.dot(j, ps_rotated[:, [0, 2]].T).T
+    perm = np.argsort(ps_rotated[:, 2])
+    ps_rotated = ps_rotated[perm, :]
+    values_rotated = values[perm]
+
+    from PIL import Image, ImageDraw
+    s = 500
+    r = 2
+    img = Image.new("RGB", (s, s), "lightblue")
+    draw = ImageDraw.Draw(img)
+    filename = "%s-%05d.png" % (prefix, i)
+    for (x, y, z), value in zip(ps_rotated, values_rotated):
+        br = int(value*255)
+        br = np.clip(br, 0, 255)
+        x = (x+1)/2*s
+        y = (-y+1)/2*s # draw has larger ys down, unlike bunny point cloud
+        draw.ellipse((x-r, y-r, x+r, y+r), fill=(br, br, br))
+    img.save(filename)
+
+
 def bokeh_vis_broken(ps, v):
     from bokeh.plotting import figure, show, output_file
     p = figure()

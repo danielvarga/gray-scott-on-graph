@@ -6,11 +6,13 @@ from neighborhood import *
 from vis import *
 
 
-n = 5000
+np.random.seed(1)
+
+n = 50000
 print "n", n
 ps = fibonacci_sphere(n, randomize=True)
 # ps = random_sphere(n) # does not work, discrepancy too high
-# ps = bunny() ; n = len(ps) # could be nicer, point cloud is not uniform density on surface
+ps = bunny() ; n = len(ps) # could be nicer, point cloud is not uniform density on surface
 
 
 tree = scipy.spatial.cKDTree(ps)
@@ -48,33 +50,17 @@ def gray_scott_update(u, v, laplacian):
 u = 0.2 * np.random.random(n) + 1
 v = 0.2 * np.random.random(n)
 
-import matplotlib as mpl
-plt.ion()
-fig = plt.figure(figsize=(10, 10), dpi=72.0, facecolor="white")
-ax = fig.add_subplot(111)
-ax.set_xlim(-1, +1)
-ax.set_ylim(-1, +1)
-perm = np.argsort(ps[:, 2])
-scatter = ax.scatter(ps[perm, 0], ps[perm, 1], c=v[perm], cmap=plt.cm.gray_r)
-plt.draw()
 
-
-n_iter = 3000
+n_iter = 10000
 print "starting", n_iter, "iterations"
-for i in range(n_iter):
+for i in range(1, n_iter+1):
     gray_scott_update(u, v, laplacian)
-    if (i+1) % 100 == 0:
-        print i+1, v.mean()
+    if i % 100 == 0:
+        print i, v.mean()
         sys.stdout.flush()
 
-        values = v[perm]
-        n = mpl.colors.Normalize(vmin = min(values), vmax = max(values))
-        m = mpl.cm.ScalarMappable(norm=n, cmap=plt.cm.gray_r)
-        scatter.set_facecolor(m.to_rgba(values))
-        scatter.set_clim(vmin=min(values), vmax=max(values))
-        fig.canvas.show()
+        rotation = 4 * np.pi * i / n_iter
+        save_frame("frames/frame", i, ps, v, rotation=rotation)
 
 
-plt.show()
-
-# vis_pattern(ps, v)
+vis_pattern(ps, v)
